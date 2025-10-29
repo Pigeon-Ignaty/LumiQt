@@ -1,4 +1,8 @@
 #include "QtScriptNetworkEditor.h"
+#include <QCoreApplication>
+#include <QMessageBox>
+#include <QTextStream>
+#include <QUdpSocket>
 
 QtScriptNetworkEditor::QtScriptNetworkEditor(QWidget *parent): QMainWindow(parent)
 {
@@ -71,12 +75,42 @@ void QtScriptNetworkEditor::setUI()
 
 void QtScriptNetworkEditor::slotLoadScripts()
 {
+    //Получаем путь до файла
+    QString pathFile = QFileDialog::getOpenFileName(this,"Выберите .qs файл","Z:\\VS\\LumiQt","Qt Script файлы (*.qs)");
 
+    if(pathFile.isEmpty())//Проверка на пустой файл
+        return;
+    //Если файл не открыт, то выводим ошибку
+    QFile file(pathFile);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::warning(this, "Ошибка", "Не удалось открыть файл;\n" + pathFile);
+        return;
+    }
+    //Читаем весь файл и записываем в поле скрипта
+    QTextStream input(&file);
+    QString strings = input.readAll();
+    m_scriptEdit->setPlainText(strings);
+
+    file.close();
 }
 
 void QtScriptNetworkEditor::slotSaveScripts()
 {
+    //Сохраняем файл
+    QString savePath = QFileDialog::getSaveFileName(this,"Сохранить как","Z:\\VS\\LumiQt\\Скрипт.qs","Qt Script файлы (*.qs)");
 
+    if(savePath.isEmpty())
+        return;
+
+    QFile file(savePath);
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text)){
+        QMessageBox::warning(this, "Ошибка", "Не удалось сохранить файл");
+        return;
+    }
+    //Записываем текст в файл
+    QTextStream output(&file);
+    output << m_scriptEdit->toPlainText();
+    file.close();
 }
 
 void QtScriptNetworkEditor::slotSendScripts()

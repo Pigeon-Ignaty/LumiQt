@@ -6,6 +6,7 @@
 #include <QSplitter>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QFileDialog>
 
 class QtScriptNetworkEditor : public QMainWindow
 {
