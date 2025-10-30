@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QUdpSocket>
 
 class QtScriptNetworkEditor : public QMainWindow
 {
@@ -23,6 +24,8 @@ private:
     QSplitter *m_splitter = nullptr;
     QWidget *m_buttonsWidget  = nullptr;
     QVBoxLayout *m_buttonsLayout  = nullptr;
+
+    QUdpSocket *m_socket = nullptr;
 private:
     void setUI();
 

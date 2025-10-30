@@ -1,27 +1,29 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QHBoxLayout>
 #include <QSplitter>
 #include <QVBoxLayout>
 #include <QPushButton>
+#include <QUdpSocket>
+#include <QHostAddress>
+#include "ui_qtscriptnetworkrunner.h"
 
 class QtScriptNetworkRunner : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    QtScriptNetworkRunner(QWidget *parent = 0);
+    explicit QtScriptNetworkRunner(QWidget *parent = nullptr);
     ~QtScriptNetworkRunner();
+
+    void notify();
 private:
-    void setUI();
-    QPlainTextEdit *m_scriptEdit = nullptr;
-    QPushButton *m_openButton = nullptr;
-    QPushButton *m_saveButton = nullptr;
-    QPushButton *m_sendButton = nullptr;
-    QSplitter *m_splitter = nullptr;
-    QWidget *m_buttonsWidget  = nullptr;
-    QVBoxLayout *m_buttonsLayout  = nullptr;
+    Ui::MainWindow *ui = nullptr;
+    QUdpSocket *m_socket = nullptr;
+    QMap<int, QByteArray> m_packages;
+    QTimer *m_timer = nullptr;
+private slots:
+    void slotTimeOut();
 };

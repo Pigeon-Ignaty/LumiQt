@@ -2,7 +2,6 @@
 #include <QCoreApplication>
 #include <QMessageBox>
 #include <QTextStream>
-#include <QUdpSocket>
 
 QtScriptNetworkEditor::QtScriptNetworkEditor(QWidget *parent): QMainWindow(parent)
 {
@@ -115,5 +114,36 @@ void QtScriptNetworkEditor::slotSaveScripts()
 
 void QtScriptNetworkEditor::slotSendScripts()
 {
+    const int chunkSize = 1022;//Размер одного пакета без индекса
+//    QString text = m_scriptEdit->toPlainText();
+    QByteArray allData;// = text.toUtf8();
+    //Заполняем пакеты буквами
+    QMap<int, QByteArray> chunks;
+    for (int i = 0;i < 50 ;i++) {
+        QByteArray temp;
+        temp.resize(chunkSize);
+        temp.fill('A' + i);
+        allData.append(temp);
+    }
+    int sizeData = allData.size();
+    int offset = 0;
+    //Проходимя по allData и делим на пакеты по 1022 байта и записываем в qmap
+    for (int i  = 0;i < (sizeData/chunkSize); i++) {
+        int size = std::min(chunkSize, sizeData - offset);
+        chunks[i] = allData.mid(offset, size);
+        offset +=size;
+    }
+    m_socket = new QUdpSocket(this);
+    //Вначало каждого пакета вставляем номер пакета
+    for(int i = 0; i < chunks.size(); i++){
+        QByteArray &package = chunks[i];
+        quint16 index = static_cast<quint16>(i);
 
+        package.prepend(static_cast<char>((index >> 8) & 0xFF));
+        package.prepend(static_cast<char>(index & 0xFF));
+    }
+    //отправляем пакеты по очереди
+    for(auto& chunk : chunks)
+        m_socket->writeDatagram(chunk,QHostAddress::LocalHost, 8000);
+    m_socket->waitForBytesWritten(100);
 }
