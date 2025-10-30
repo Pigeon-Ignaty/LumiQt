@@ -2,7 +2,6 @@
 #include <QCoreApplication>
 #include <QMessageBox>
 #include <QTextStream>
-
 QtScriptNetworkEditor::QtScriptNetworkEditor(QWidget *parent): QMainWindow(parent)
 {
     setUI();
@@ -10,6 +9,17 @@ QtScriptNetworkEditor::QtScriptNetworkEditor(QWidget *parent): QMainWindow(paren
 
 QtScriptNetworkEditor::~QtScriptNetworkEditor()
 {
+
+}
+
+void QtScriptNetworkEditor::setIP(QString ip)
+{
+    m_IP = ip;
+}
+
+void QtScriptNetworkEditor::setPort(int port)
+{
+    m_port = port;
 
 }
 
@@ -142,8 +152,11 @@ void QtScriptNetworkEditor::slotSendScripts()
         package.prepend(static_cast<char>((index >> 8) & 0xFF));
         package.prepend(static_cast<char>(index & 0xFF));
     }
+    QHostAddress address(m_IP);
+
     //отправляем пакеты по очереди
     for(auto& chunk : chunks)
-        m_socket->writeDatagram(chunk,QHostAddress::LocalHost, 8000);
+        m_socket->writeDatagram(chunk,address, m_port);
+
     m_socket->waitForBytesWritten(100);
 }

@@ -8,8 +8,8 @@ find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
 add_library(Common STATIC
-    BaseWindow.cpp
-    BaseWindow.h
+    ConnectionDialog.cpp
+    ConnectionDialog.h
 )
 target_include_directories(Common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

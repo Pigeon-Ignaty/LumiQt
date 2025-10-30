@@ -27,7 +27,7 @@ set(CMAKE_AUTORCC ON)
 
 add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI_HEADERS})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Widgets Qt5::Network)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Widgets Qt5::Network Common)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common

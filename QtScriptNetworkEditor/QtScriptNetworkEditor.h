@@ -16,6 +16,10 @@ class QtScriptNetworkEditor : public QMainWindow
 public:
     QtScriptNetworkEditor(QWidget *parent = 0);
     ~QtScriptNetworkEditor();
+
+    void setIP(QString ip);
+    void setPort(int port);
+
 private:
     QPlainTextEdit *m_scriptEdit = nullptr;
     QPushButton *m_openButton = nullptr;
@@ -24,6 +28,9 @@ private:
     QSplitter *m_splitter = nullptr;
     QWidget *m_buttonsWidget  = nullptr;
     QVBoxLayout *m_buttonsLayout  = nullptr;
+
+    QString m_IP;
+    int m_port;
 
     QUdpSocket *m_socket = nullptr;
 private:
