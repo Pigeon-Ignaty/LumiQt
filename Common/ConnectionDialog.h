@@ -18,5 +18,8 @@ private:
     QLineEdit *m_ipEdit = nullptr;
     QLineEdit *m_portEdit = nullptr;
     QPushButton *m_saveButton = nullptr;
+    static constexpr int minPort = 1024;
+    static constexpr int maxPort = 65535;
+
 };
 
