@@ -11,21 +11,25 @@ set(SOURCES
     main.cpp
     QtScriptNetworkRunner.cpp
     QtScriptNetworkRunner.ui
+    Interpretator.cpp
 )
 
 set(HEADERS
     QtScriptNetworkRunner.h
+    Interpretator.h
 )
 
 set(FORMS
     QtScriptNetworkRunner.ui
     )
-
+set(RESOURCE_FILES
+    resources.qrc
+)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI_HEADERS})
+add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${UI_HEADERS} ${RESOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Widgets Qt5::Network Common)
 

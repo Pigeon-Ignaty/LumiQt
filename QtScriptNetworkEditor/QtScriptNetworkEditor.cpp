@@ -2,9 +2,12 @@
 #include <QCoreApplication>
 #include <QMessageBox>
 #include <QTextStream>
+#include <QTimer>
 QtScriptNetworkEditor::QtScriptNetworkEditor(QWidget *parent): QMainWindow(parent)
 {
     setUI();
+    m_socket = new QUdpSocket(this);
+
 }
 
 QtScriptNetworkEditor::~QtScriptNetworkEditor()
@@ -20,14 +23,13 @@ void QtScriptNetworkEditor::setIP(QString ip)
 void QtScriptNetworkEditor::setPort(int port)
 {
     m_port = port;
-
 }
 
 void QtScriptNetworkEditor::setUI()
 {
     resize(1280, 720);
     setWindowTitle("Редактор скриптов");
-
+    setWindowIcon(QIcon(":/editorLogo.png"));
     //Шрифт
     QFont font;
     font.setPointSize(12);
@@ -43,7 +45,7 @@ void QtScriptNetworkEditor::setUI()
     //Кнопки
     m_openButton = new QPushButton("Открыть скрипт", this);
     m_openButton->setFont(font);
-    m_openButton->setMinimumWidth(100);
+    m_openButton->setMinimumWidth(300);
     m_openButton->setMinimumHeight(50);
 
     m_saveButton = new QPushButton("Сохранить скрипт", this);
@@ -74,7 +76,19 @@ void QtScriptNetworkEditor::setUI()
     m_splitter->setCollapsible(0, false);
     m_splitter->setCollapsible(1, false);
     m_splitter->setSizes({1, 3});
+    //Устанавливаем соотношение 1 к 3
+    QTimer::singleShot(0, this, [this]() {
+        m_splitter->setStretchFactor(0, 1);
+        m_splitter->setStretchFactor(1, 3);
 
+        // Принудительно устанавливаем размеры
+        int totalWidth = m_splitter->width();
+        if (totalWidth > 100) {
+            QList<int> sizes;
+            sizes << totalWidth / 4 << (totalWidth * 3) / 4;
+            m_splitter->setSizes(sizes);
+        }
+    });
     //Установка центрального виджета
     QWidget *centralWidget = new QWidget(this);
     QHBoxLayout *centralLayout = new QHBoxLayout(centralWidget);
@@ -125,25 +139,19 @@ void QtScriptNetworkEditor::slotSaveScripts()
 void QtScriptNetworkEditor::slotSendScripts()
 {
     const int chunkSize = 1022;//Размер одного пакета без индекса
-//    QString text = m_scriptEdit->toPlainText();
-    QByteArray allData;// = text.toUtf8();
-    //Заполняем пакеты буквами
+
+    QString text = m_scriptEdit->toPlainText();
+    QByteArray allData = text.toUtf8();
     QMap<int, QByteArray> chunks;
-    for (int i = 0;i < 50 ;i++) {
-        QByteArray temp;
-        temp.resize(chunkSize);
-        temp.fill('A' + i);
-        allData.append(temp);
-    }
-    int sizeData = allData.size();
+    int sizeData = allData.size();//Размер данных
     int offset = 0;
+    int index = 0;
     //Проходимя по allData и делим на пакеты по 1022 байта и записываем в qmap
-    for (int i  = 0;i < (sizeData/chunkSize); i++) {
+    while (offset < sizeData) {
         int size = std::min(chunkSize, sizeData - offset);
-        chunks[i] = allData.mid(offset, size);
-        offset +=size;
+        chunks[index++] = allData.mid(offset, size);
+        offset += size;
     }
-    m_socket = new QUdpSocket(this);
     //Вначало каждого пакета вставляем номер пакета
     for(int i = 0; i < chunks.size(); i++){
         QByteArray &package = chunks[i];
@@ -155,8 +163,10 @@ void QtScriptNetworkEditor::slotSendScripts()
     QHostAddress address(m_IP);
 
     //отправляем пакеты по очереди
-    for(auto& chunk : chunks)
-        m_socket->writeDatagram(chunk,address, m_port);
+    for(auto& chunk : chunks){
+        qint64 sent = m_socket->writeDatagram(chunk, address, m_port);
 
-    m_socket->waitForBytesWritten(100);
+        if (sent == -1)
+            qWarning() << "Ошибка отправки:" << m_socket->errorString();
+    }
 }

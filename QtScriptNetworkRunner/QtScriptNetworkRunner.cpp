@@ -1,9 +1,9 @@
 #include "QtScriptNetworkRunner.h"
 #include <QTimer>
+#include <QMessageBox>
 QtScriptNetworkRunner::QtScriptNetworkRunner(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);  // инициализация UI
-    int totalWidth = ui->splitter->width();
 
     //Устанавливаем соотношение 1 к 3
     QTimer::singleShot(0, this, [this]() {
@@ -18,8 +18,9 @@ QtScriptNetworkRunner::QtScriptNetworkRunner(QWidget *parent): QMainWindow(paren
             ui->splitter->setSizes(sizes);
         }
     });
-
-    notify();
+    ui->m_scriptField->setReadOnly(true);
+    m_scene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(m_scene);
 }
 
 QtScriptNetworkRunner::~QtScriptNetworkRunner()
@@ -29,7 +30,6 @@ QtScriptNetworkRunner::~QtScriptNetworkRunner()
 
 void QtScriptNetworkRunner::notify()
 {
-    ui->splitter->setSizes({1,3});
     m_socket = new QUdpSocket(this);
     QHostAddress address(m_IP);
     m_socket->bind(address, m_port);//Указываем что слушать
@@ -39,12 +39,15 @@ void QtScriptNetworkRunner::notify()
     connect(m_timer, &QTimer::timeout, this, &QtScriptNetworkRunner::slotTimeOut);//Если за 1 сек не пришёл пакет,
     //то считаем, что все пакеты дошли
     connect(m_socket, &QUdpSocket::readyRead, this, [=](){//Получаем входящие данные на сокет
-        if(!m_timer->isActive())//Если давно не было пакетов, то считаем как новую отправку
+        if(!m_timer->isActive()){//Если давно не было пакетов, то считаем как новую отправку
             ui->m_scriptField->clear();
+            m_packages.clear();
+        }
+        m_timer->start(1000);
 
         while(m_socket->hasPendingDatagrams()){//Если есть непрочитанные пакеты
             QByteArray data;
-            data.resize(m_socket->pendingDatagramSize());//Делаем размер с пакетом
+            data.resize(m_socket->pendingDatagramSize());// Устанавливаем размер data равным размеру следующего пакета
             QHostAddress sender;
             quint16 port;
             m_socket->readDatagram(data.data(), data.size(), &sender, &port);//Читаем данные в data
@@ -53,14 +56,13 @@ void QtScriptNetworkRunner::notify()
                 data.remove(0,2);//удаляем индекс
                 m_packages[indexPackage] = data;
             }
-            m_timer->start(1000);
         }
     });
 }
 
 void QtScriptNetworkRunner::slotTimeOut()
 {
-    //читаем отсортированные по индексу пакеты и преобразовываем в текст
+// Читаем пакеты по индексу и конвертируем их содержимое в текст
     for(const auto& package: m_packages)
         ui->m_scriptField->appendPlainText(QString::fromUtf8(package));//Выводим текст
     m_packages.clear();
@@ -75,4 +77,75 @@ void QtScriptNetworkRunner::setPort(int port)
 {
     m_port = port;
 
+}
+
+void QtScriptNetworkRunner::drawFigures(QVector<Figure> figures)
+{
+    m_scene->clear();//Очищаем сцену
+    for(const auto &figure : figures){//Проходимся по списку фигур
+        switch (figure.type) {//По типу рисуем фигуру
+        case TypeFigure::fillCircle:{
+            m_scene->addEllipse(figure.points[0].x(),figure.points[0].y(),figure.radius,figure.radius,QPen(Qt::NoPen), QBrush(figure.color));
+            break;
+        }
+        case TypeFigure::strokeCircle:{
+            m_scene->addEllipse(figure.points[0].x(),figure.points[0].y(),figure.radius,figure.radius,QPen(figure.color,2), QBrush(Qt::NoBrush));
+            break;
+        }
+        case TypeFigure::fillTriangle:{
+            QPolygonF poly({ figure.points[0], figure.points[1], figure.points[2] });
+            m_scene->addPolygon(poly,QPen(Qt::NoPen), QBrush(figure.color));
+            break;
+        }
+        case TypeFigure::strokeTriangle:{
+            QPolygonF poly({ figure.points[0], figure.points[1], figure.points[2] });
+            m_scene->addPolygon(poly,QPen(figure.color,2), QBrush(Qt::NoBrush));
+            break;
+        }
+        case TypeFigure::fillRectangle:{
+            m_scene->addRect(QRectF(figure.points[0],figure.points[1]),QPen(Qt::NoPen), QBrush(figure.color));
+            break;
+        }
+        case TypeFigure::strokeRectangle:{
+            m_scene->addRect(QRectF(figure.points[0],figure.points[1]),QPen(figure.color,2), QBrush(Qt::NoBrush));
+            break;
+        }
+        case TypeFigure::line:{
+            m_scene->addLine(QLineF(figure.points[0], figure.points[1]),QPen(figure.color,2));
+            break;
+        }
+    }
+}
+}
+
+void QtScriptNetworkRunner::on_pushButton_clicked()
+{
+    // Получаем текст и разбиваем на строки
+    QString text = ui->m_scriptField->toPlainText();
+    QStringList lines = text.split("\n"); // сначала просто разбиваем
+
+    // Убираем строки пустые или состоящие только из пробелов
+    QStringList cleanLines;
+    for (const QString &line : lines) {
+        if (!line.trimmed().isEmpty()) {
+            cleanLines.append(line);
+        }
+    }
+
+    Interpretator inter;
+    int error = inter.parseStrings(cleanLines);//Читаем строки с командами
+
+    if(error == 0){// Если нет ошибок, то рисуем фигуры, иначе выводим ошибку
+        auto figures = inter.getFigures();
+        drawFigures(figures);
+    }
+    else{
+        QMessageBox::warning(this, "Ошибка", QString("Возникла ошибка выполнения скрипта на строчке %1").arg(error));
+    }
+}
+
+
+void QtScriptNetworkRunner::on_pushButton_2_clicked()
+{
+    ui->m_scriptField->clear();
 }

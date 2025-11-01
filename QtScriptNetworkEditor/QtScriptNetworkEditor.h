@@ -19,7 +19,6 @@ public:
 
     void setIP(QString ip);
     void setPort(int port);
-
 private:
     QPlainTextEdit *m_scriptEdit = nullptr;
     QPushButton *m_openButton = nullptr;
@@ -37,6 +36,7 @@ private:
     void setUI();
 
 public slots:
+    //Загрузка, сохранить и отравить
     void slotLoadScripts();
     void slotSaveScripts();
     void slotSendScripts();

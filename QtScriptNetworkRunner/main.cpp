@@ -1,12 +1,13 @@
 #include "QtScriptNetworkRunner.h"
 #include <QApplication>
 #include "ConnectionDialog.h"
-
+#include <QDebug>
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
     ConnectionDialog dialog;
+    dialog.setWindowIcon(QIcon(":/recieverLogo.png"));
     int state = dialog.exec();
     if (state == QDialog::Rejected){
         return 0;
@@ -14,7 +15,7 @@ int main(int argc, char *argv[])
     QtScriptNetworkRunner w;
     w.setIP(dialog.getIp());
     w.setPort(dialog.getPort());
-
+    w.notify();
     w.show();
 
     return a.exec();
