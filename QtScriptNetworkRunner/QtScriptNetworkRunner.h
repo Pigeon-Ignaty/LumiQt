@@ -9,7 +9,7 @@
 #include <QUdpSocket>
 #include <QHostAddress>
 #include "ui_QtScriptNetworkRunner.h"
-#include "Interpretator.h"
+#include "Interpreter.h"
 #include <QGraphicsScene>
 class QtScriptNetworkRunner : public QMainWindow
 {

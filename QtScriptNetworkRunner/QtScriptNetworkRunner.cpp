@@ -132,7 +132,7 @@ void QtScriptNetworkRunner::on_pushButton_clicked()
         }
     }
 
-    Interpretator inter;
+    Interpreter inter;
     int error = inter.parseStrings(cleanLines);//Читаем строки с командами
 
     if(error == 0){// Если нет ошибок, то рисуем фигуры, иначе выводим ошибку

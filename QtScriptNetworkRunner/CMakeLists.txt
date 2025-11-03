@@ -11,12 +11,12 @@ set(SOURCES
     main.cpp
     QtScriptNetworkRunner.cpp
     QtScriptNetworkRunner.ui
-    Interpretator.cpp
+    Interpreter.cpp
 )
 
 set(HEADERS
     QtScriptNetworkRunner.h
-    Interpretator.h
+    Interpreter.h
 )
 
 set(FORMS

@@ -15,10 +15,10 @@ struct Figure{//структура для отрисовки
 };
 
 
-class Interpretator
+class Interpreter
 {
 public:
-    Interpretator();
+    Interpreter();
     bool parseString(QString &string);//Читаем строку
     int parseStrings(QStringList strings);//Читаем строки
     QVector<Figure> getFigures();//Метод для получения список фигур

@@ -1,11 +1,11 @@
-#include "Interpretator.h"
+#include "Interpreter.h"
 
-Interpretator::Interpretator()
+Interpreter::Interpreter()
 {
 
 }
 
-bool Interpretator::parseString(QString &comm)
+bool Interpreter::parseString(QString &comm)
 {
     Figure figure;
     QStringList commands = comm.split(" "); //Список слов
@@ -147,7 +147,7 @@ bool Interpretator::parseString(QString &comm)
     return true;
 }
 
-int Interpretator::parseStrings(QStringList strings)
+int Interpreter::parseStrings(QStringList strings)
 {
     //В цикле парсим каждую строку и команду
     int counter = 0;
@@ -161,7 +161,7 @@ int Interpretator::parseStrings(QStringList strings)
     return 0;//Иначе вернём 0 в случае успеха
 }
 
-QVector<Figure> Interpretator::getFigures()
+QVector<Figure> Interpreter::getFigures()
 {
     return m_figures;
 }
